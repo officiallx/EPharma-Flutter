@@ -1,7 +1,10 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
+import 'package:medicine/View/home.dart';
+import 'package:medicine/services/login_service.dart';
 
 import '../Styles/appcolor.dart';
 
@@ -17,6 +20,46 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     TextEditingController usernameController = TextEditingController();
     TextEditingController passwordController = TextEditingController();
+
+    @override
+    void initState() {
+      super.initState();
+    }
+
+    Future doLogin() async {
+      EasyLoading.show(status: "Logging In");
+      final client =
+          LoginService(Dio(BaseOptions(contentType: "application/json")));
+      try {
+        if (usernameController.text != "" && passwordController.text != "") {
+          var response = await client.doLogin(
+              usernameController.text, passwordController.text);
+          if (response.message == "OK") {
+            EasyLoading.dismiss();
+            EasyLoading.showSuccess("Success");
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const HomePage(),
+              ),
+            );
+          }
+        } else {
+          EasyLoading.dismiss();
+          EasyLoading.showError("Fill all required fields.");
+        }
+      } on DioError {
+        EasyLoading.dismiss();
+        EasyLoading.showError("Username or password is incorrect");
+      }
+    }
+
+    @override
+    void setState(fn) {
+      if (mounted) {
+        super.setState(fn);
+      }
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -53,12 +96,12 @@ class _LoginPageState extends State<LoginPage> {
                         showCursor: false,
                         controller: usernameController,
                         decoration: InputDecoration(
-                          border: OutlineInputBorder(
+                          border: const OutlineInputBorder(
                             borderSide: BorderSide(
                               color: AppColor.primary,
                             ),
                           ),
-                          focusedBorder: OutlineInputBorder(
+                          focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColor.primary),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
@@ -82,10 +125,10 @@ class _LoginPageState extends State<LoginPage> {
                         controller: passwordController,
                         obscureText: true,
                         decoration: InputDecoration(
-                          border: OutlineInputBorder(
+                          border: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColor.primary),
                           ),
-                          focusedBorder: OutlineInputBorder(
+                          focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColor.primary),
                           ),
                           contentPadding: const EdgeInsets.symmetric(
@@ -107,27 +150,6 @@ class _LoginPageState extends State<LoginPage> {
                     ],
                   ),
                 ),
-                Container(
-                  padding: EdgeInsets.zero,
-                  margin: EdgeInsets.zero,
-                  child: Row(
-                    children: [
-                      Checkbox(
-                        materialTapTargetSize: MaterialTapTargetSize.padded,
-                        overlayColor:
-                            MaterialStateProperty.all<Color>(AppColor.primary),
-                        checkColor: Colors.white,
-                        activeColor: AppColor.primary,
-                        value: true,
-                        onChanged: (bool? value) {},
-                      ),
-                      Text(
-                        "Remember Me",
-                        style: const TextStyle(fontSize: 13.0),
-                      ),
-                    ],
-                  ),
-                ),
                 const SizedBox(
                   height: 30,
                 ),
@@ -145,8 +167,8 @@ class _LoginPageState extends State<LoginPage> {
                     textAlign: TextAlign.center,
                   ),
                   onPressed: () async {
+                    await doLogin();
                     FocusScope.of(context).requestFocus(FocusNode());
-                    EasyLoading.show(status: "Logging In");
                   },
                 ),
                 const SizedBox(
@@ -156,14 +178,14 @@ class _LoginPageState extends State<LoginPage> {
                   child: Column(
                     children: [
                       Text(
-                        "© ${DateTime.now().year} Medicine App",
+                        "© ${DateTime.now().year} EPharma",
                         style: const TextStyle(
                             color: AppColor.lightText, fontSize: 12),
                       ),
-                      Text(
+                      const Text(
                         "Version 1.0",
-                        style: const TextStyle(
-                            color: AppColor.lightText, fontSize: 10),
+                        style:
+                            TextStyle(color: AppColor.lightText, fontSize: 10),
                       ),
                     ],
                   ),
